@@ -9,11 +9,11 @@ public class TrackedInputStream extends InputStream {
 	
 	private CopyOnWriteArrayList<IOTracker> trackers = new CopyOnWriteArrayList<IOTracker>();
 	
-	private boolean hasError;
 	private boolean isClosed;
 
 	public TrackedInputStream(InputStream wrapee) {
 		this.wrapee = wrapee;
+		App.addTrackedInputStream(this);
 	}
 	
 	public synchronized void addTracker(IOTracker tracker) {
@@ -31,9 +31,6 @@ public class TrackedInputStream extends InputStream {
 			tracker.beforeRead(this, b, off, len);
 		}
 		try {
-			if (hasError) {
-				throw new IOException("hasError");
-			}
 			if (isClosed) {
 				throw new IOException("isClosed");
 			}
@@ -43,30 +40,30 @@ public class TrackedInputStream extends InputStream {
 			}
 			return ret;
 		} catch (IOException e) {
-			hasError = true;
-			for (IOTracker tracker : trackers) {
-				tracker.afterReadException(this, e, b, off, len);
-			}
+			close(e);
 			throw e;
 		}
 	}
 	
 	@Override
-	public void close() throws IOException {
-		for (IOTracker tracker : trackers) {
-			tracker.beforeClose(this);
-		}
-		try {
-			isClosed = true;
-			wrapee.close();
-			for (IOTracker tracker : trackers) {
-				tracker.afterClose(this);
+	public void close() {
+		close(null);
+	}
+	
+	protected void close(IOException cause) {
+		boolean closed = false;
+		synchronized (this) {
+			if (! isClosed) {
+				closed = true;
+				App.removeTrackedInputStream(this);
+				isClosed = true;
 			}
-		} catch (IOException e) {
+		}		
+		if (closed) {
+			Util.close(wrapee);
 			for (IOTracker tracker : trackers) {
-				tracker.afterCloseException(this, e);
+				tracker.onClose(this, cause);
 			}
-			throw e;
 		}
 	}
 

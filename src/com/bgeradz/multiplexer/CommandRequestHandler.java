@@ -18,7 +18,7 @@ public class CommandRequestHandler implements HttpRequestHandler {
 		TrackedInputStream input = new TrackedInputStream(process.getInputStream());
 		input.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void beforeClose(TrackedInputStream inputStream) {
+			public void onClose(TrackedInputStream inputStream, IOException cause) {
 				try {
 					process.waitFor();
 					process.destroy();

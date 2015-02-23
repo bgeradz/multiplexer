@@ -23,9 +23,22 @@ public class HttpRequest implements Closeable {
 	public HttpRequest(Socket socket) throws IOException {
 		this.socket = socket;
 		name = socket.getInetAddress().toString() + ":" + socket.getPort();
+		L = App.createLogger(getClass().getSimpleName() + "[" + name + "]");
+
 		input = new TrackedInputStream(socket.getInputStream());
 		output = new TrackedOutputStream(socket.getOutputStream());
-		L = App.createLogger(getClass().getSimpleName() + "[" + name +"]");
+		input.addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedInputStream inputStream,	IOException cause) {
+				close();
+			}
+		});
+		output.addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+				close();
+			}			
+		});
 	}
 	
 	public String getName() {
@@ -99,18 +112,15 @@ public class HttpRequest implements Closeable {
 	}
 	
 	@Override
-	public void close() throws IOException {
-		if (input != null) {
-			Util.close(input);
-		}
-		if (output != null) {
-			Util.close(output);
-		}
+	public void close() {
+		Util.close(input);
+		Util.close(output);
 		if (socket != null) {
 			Util.close(socket);
+			socket = null;
 		}
 	}
-	
+
 	private String readLine(Reader reader, int maxLength) throws IOException {
 		StringBuilder buf = new StringBuilder();
 		while (true) {

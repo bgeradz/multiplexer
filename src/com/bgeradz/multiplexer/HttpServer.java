@@ -65,15 +65,14 @@ public class HttpServer implements Runnable {
 		}
 		
 		private void errorResponse(int status, String message) {
+			HttpResponse response = new HttpResponse(request, status, message);
 			try {
-				HttpResponse response = new HttpResponse(request, status, message);
-				try {
-					response.transfer();
-				} finally {
-					Util.close(request);
-					Util.close(response);
-				}
-			} catch (IOException e) {}
+				response.transfer();
+			} catch (IOException e) {
+			} finally {
+				request.close();
+				response.close();
+			}
 		}
 	}
 

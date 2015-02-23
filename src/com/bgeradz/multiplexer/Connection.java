@@ -99,26 +99,16 @@ public class Connection {
 		}
 
 		@Override
-		public void afterClose(TrackedInputStream inputStream) {
+		public void onClose(TrackedInputStream inputStream, IOException cause) {
 			inputClosed = true;
+			output.close();
 			checkClosed();
 		}
-
+		
 		@Override
-		public void afterCloseException(TrackedInputStream inputStream, IOException e) {
-			inputClosed = true;
-			checkClosed();
-		}
-
-		@Override
-		public void afterClose(TrackedOutputStream inputStream) {
+		public void onClose(TrackedOutputStream outputStream, IOException cause) {
 			outputClosed = true;
-			checkClosed();
-		}
-
-		@Override
-		public void afterCloseException(TrackedOutputStream inputStream, IOException e) {
-			outputClosed = true;
+			input.close();
 			checkClosed();
 		}
 	}

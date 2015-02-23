@@ -8,19 +8,27 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 	
 	private CopyOnWriteArrayList<TrackedOutputStream> outputStreams = new CopyOnWriteArrayList<TrackedOutputStream>();
 	
-	private boolean isClosed;
-	
 	public ReplicatingOutputStream() {
 		super(null);
+		addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedInputStream inputStream,	IOException cause) {
+				closeOutputs();
+			}
+		});
+	}
+	
+	private void closeOutputs() {
+		for (TrackedOutputStream output : outputStreams) {
+			output.close();
+		}
 	}
 	
 	public synchronized void addOutputStream(final TrackedOutputStream output) throws IOException {
 		output.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void beforeClose(TrackedOutputStream outputStream) {
-				if (! isClosed) {
-					removeOutputStream(output);
-				}
+			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+				removeOutputStream(output);
 			}
 		});
 		outputStreams.add(output);
@@ -31,9 +39,9 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 		if (outputStreams.contains(output)) {
 			outputStreams.remove(output);
 			L.info("Output removed ("+ outputStreams.size() +")");
-		}
-		if (outputStreams.size() == 0) {
-			Util.close(this);
+			if (outputStreams.size() == 0) {
+				close();
+			}
 		}
 	}
 
@@ -50,25 +58,29 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
-		if (isClosed) {
-			throw new IOException("closed");
-		}
-		
 		for (IOTracker tracker : trackers) {
 			tracker.beforeWrite(this, b, off, len);
 		}
-
-		for (TrackedOutputStream output : outputStreams) {
-			try {
-				output.write(b, off, len);
-			} catch (IOException e) {
-				Util.close(output);
+		try {
+			if (isClosed) {
+				throw new IOException("isClosed");
 			}
+			
+			for (TrackedOutputStream output : outputStreams) {
+				try {
+					output.write(b, off, len);
+				} catch (IOException e) {
+					Util.close(output);
+				}
+			}
+			
+			for (IOTracker tracker : trackers) {
+				tracker.afterWrite(this, b, off, len);
+			}
+		} catch (IOException e) {
+			close(e);
+			throw e;
 		}
-		
-		for (IOTracker tracker : trackers) {
-			tracker.afterWrite(this, b, off, len);
-		}		
 	}
 
 	@Override
@@ -84,16 +96,4 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 			}
 		}
 	}
-
-	@Override
-	public void close() throws IOException {
-		if (! isClosed) {
-			isClosed = true;
-			for (TrackedOutputStream output : outputStreams) {
-				Util.close(output);
-			}
-		}
-		super.close();
-	}
-	
 }

@@ -30,15 +30,9 @@ public class ProcessOutputDataSource implements DataSource {
 			
 			input.addTracker(new IOTrackerAdapter() {
 				@Override
-				public void beforeClose(TrackedInputStream inputStream) {
+				public void onClose(TrackedInputStream inputStream, IOException cause) {
+					L.info("Input closed, cause: "+ cause);
 					shutdown();
-				}
-
-				@Override
-				public void afterReadException(TrackedInputStream inputStream,
-						IOException exception, byte[] buffer, int offset,
-						int length) {
-					Util.close(input);
 				}
 			});
 			return input;

@@ -24,25 +24,29 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		L = App.createLogger(ReplicatingStreamRequestHandler.class.getSimpleName() + "[" + name +"]");
 		this.name = name;
 		this.dataSource = dataSource;
-		replicatingOutput = new ReplicatingOutputStream();
-		replicatingOutput.addTracker(new IOTrackerAdapter() {
-			@Override
-			public void beforeClose(TrackedOutputStream inputStream) {
-				synchronized (ReplicatingStreamRequestHandler.this) {
-					if (thread != null) {
-						shouldStop = true;
-						Util.close(input);
-					}
-				}
-			}
-		});
 	}
 
 	@Override
-	public HttpResponse getResponse(HttpRequest request) throws IOException {
+	public synchronized HttpResponse getResponse(HttpRequest request) throws IOException {
 		if (thread == null) {
+			replicatingOutput = new ReplicatingOutputStream();
+			replicatingOutput.addTracker(new IOTrackerAdapter() {
+				@Override
+				public void onClose(TrackedOutputStream inputStream, IOException cause) {
+					synchronized (ReplicatingStreamRequestHandler.this) {
+						stopThread();
+					}
+				}
+			});
+			
 			try {
 				input = dataSource.open();
+				input.addTracker(new IOTrackerAdapter() {
+					@Override
+					public void onClose(TrackedInputStream inputStream, IOException cause) {
+						replicatingOutput.close();
+					}
+				});
 				id = App.getUniqueId();
 				new Connection("REP["+ id +"] ("+ name +")", input, replicatingOutput);			
 			} catch (IOException e) {
@@ -54,13 +58,22 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		}
 		
 		CircularByteBuffer buffer = new CircularByteBuffer(BUFFER_SIZE, false);
-		TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream());
 		final TrackedOutputStream bufferOutputStream = new TrackedOutputStream(buffer.getOutputStream());
+		final TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream());
 		
-		new Connection("REP["+ id +"] >= ("+ request.getName() +" "+ request.getPath() +")", input, replicatingOutput);
+		String connectionName = "REP["+ id +"] >= ("+ request.getName() +" "+ request.getPath() +")";
 		replicatingOutput.addOutputStream(bufferOutputStream);
+		new Connection(connectionName, bufferInputStream, bufferOutputStream);
 		HttpResponse response = new HttpResponse(request, bufferInputStream);
 		return response;
+	}
+	
+	private void stopThread() {
+		synchronized (this) {
+			if (thread != null) {
+				shouldStop = true;
+			}
+		}
 	}
 	
 	private class TransferThread extends Thread {
@@ -81,9 +94,9 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 				}
 			} catch (IOException e) {
 				L.warn("Input exception: "+ e);
-				Util.close(replicatingOutput);
-				Util.close(input);
 			} finally {
+				Util.close(input);
+				Util.close(replicatingOutput);
 				synchronized (this) {
 					thread = null;
 				}

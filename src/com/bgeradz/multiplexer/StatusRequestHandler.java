@@ -51,6 +51,9 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			}
 			
 			out.println("</table>");
+			
+			out.println("Open streams: "+ App.getTrackedStreamCount());
+			
 			out.println("</body></html>");
 			
 			out.flush();

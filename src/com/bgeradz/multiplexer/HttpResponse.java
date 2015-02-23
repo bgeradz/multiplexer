@@ -31,7 +31,18 @@ public class HttpResponse implements Closeable {
 		this.request = request;
 		this.input = input;
 		this.output = request.getOutputStream();
-		
+		input.addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedInputStream inputStream,	IOException cause) {
+				close();
+			}
+		});
+		output.addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+				close();
+			}			
+		});
 		inferMimeType(request.getPath());
 	}
 	
@@ -63,7 +74,7 @@ public class HttpResponse implements Closeable {
 	}
 	
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		Util.close(request);
 		Util.close(input);
 		Util.close(output);
