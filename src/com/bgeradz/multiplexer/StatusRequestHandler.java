@@ -26,7 +26,8 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			
 			out.println("  <tr>");
 			out.println("    <th>#</th>");
-			out.println("    <th>Name</th>");
+			out.println("    <th>Output</th>");
+			out.println("    <th>Input</th>");
 			out.println("    <th>State</th>");
 			out.println("    <th>Transferred</th>");
 			out.println("  </tr>");
@@ -38,16 +39,15 @@ public class StatusRequestHandler implements HttpRequestHandler {
 				Connection connection = connections.get(i);
 				
 				String stateString = connection.getState().toString();
-				stateString += " ("+ formatTimeAgo(now, connection.getLastStateChangeTime()) + ")";
+				stateString += " ("+ formatTimeAgo(now, connection.getLastStateChangeTime(), "since ", "") + ")";
 				
 				TrackedInputStream input = connection.getInput();
 				TrackedOutputStream output = connection.getOutput();
-				// String desc = input.getName() + " => " + output.getName();
-				String desc = output.getName() + " <= " + input.getName();
 				
 				out.println("  <tr>");
 				out.println("    <td>"+ i +"</td>");
-				out.println("    <td>"+ desc +"</td>");
+				out.println("    <td>"+ output.getName() +"</td>");
+				out.println("    <td>"+ input.getName() +"</td>");
 				out.println("    <td>"+ stateString +"</td>");
 				out.println("    <td>"+ connection.getBytesTransferred() +"</td>");
 				out.println("  </tr>");
@@ -56,35 +56,64 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("</table>");
 			
 			out.println("<br />");
-			out.println("Open input streams: <br />");
-			for (TrackedInputStream input : App.getTrackedInputStreams()) {
-				String lastRead = formatTimeAgo(now, input.getLastReadTime());
-				out.println("&nbsp;&nbsp;&nbsp" + input.getName() +" (last read: "+lastRead+ ")<br />");
-			}
+
+			int pos;
 			
 			out.println("<br />");
-			out.println("Open output streams: <br>");
-			for (TrackedOutputStream output : App.getTrackedOutputStreams()) {
-				String lastWrite = formatTimeAgo(now, output.getLastWriteTime());
-				out.println("&nbsp;&nbsp;&nbsp" + output.getName() +" (last write: "+lastWrite+ ")<br />");
+			out.println("Open input streams: <br />");
+			out.println("<table>");
+			out.println("  <tr>");
+			out.println("    <th>#</th>");
+			out.println("    <th>Input</th>");
+			out.println("    <th>Status</th>");
+			out.println("  </tr>");
+
+			pos = 1;
+			for (TrackedInputStream input : App.getTrackedInputStreams()) {
+				String lastRead = formatTimeAgo(now, input.getLastReadTime(), "", " ago");
+				out.println("  <tr>");
+				out.println("    <td>" + (pos++) +"</td>");
+				out.println("    <td>" + input.getName() +"</td>");
+				out.println("    <td>(last read: "+lastRead+ ")</td>");
+				out.println("  </tr>");
 			}
+			out.println("</table>");
 			
-			
+
+			out.println("<br />");
+			out.println("Open output streams: <br>");
+			out.println("<table>");
+			out.println("  <tr>");
+			out.println("    <th>#</th>");
+			out.println("    <th>Name</th>");
+			out.println("    <th>Status</th>");
+			out.println("  </tr>");
+			pos = 1;
+			for (TrackedOutputStream output : App.getTrackedOutputStreams()) {
+				String lastWrite = formatTimeAgo(now, output.getLastWriteTime(), "", " ago");
+				out.println("  <tr>");
+				out.println("    <td>" + (pos++) +"</td>");
+				out.println("    <td>" + output.getName() +"</td>");
+				out.println("    <td>(last write: "+ lastWrite +")</td>");
+				out.println("  </tr>");
+			}
+			out.println("</table>");
+
 			out.println("</body></html>");
 			
 			out.flush();
 			return outStream.toByteArray();
 		}
 		
-		private String formatTimeAgo(long now, long event) {
+		private String formatTimeAgo(long now, long event, String prefix, String suffix) {
 			if (event == 0L) {
 				return "never";
 			} else {
 				long elapsed = now - event;
 				if (elapsed < 1000) {
-					return elapsed + " ms ago";
+					return prefix + elapsed + " ms" + suffix;
 				} else {
-					return (elapsed / 1000) + " sec ago";
+					return prefix + (elapsed / 1000) + " sec" + suffix;
 				}
 			}
 		}
