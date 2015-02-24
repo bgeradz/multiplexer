@@ -21,13 +21,23 @@ public class StatusRequestHandler implements HttpRequestHandler {
 		private PrintWriter out = new PrintWriter(outStream);
 
 		public byte[] create() throws IOException {			
-			out.println("<html><body>");
+			out.println("<html>");
+			out.println("<head>");
+			out.println("  <title>Status</title>");
+			out.println("  <style>");
+			out.println("    td {");
+			out.println("      padding-left:5px;");
+			out.println("      padding-right:5px;");
+			out.println("    }");
+			out.println("  </style>");
+			out.println("</head>");
+			out.println("<body>");
 			out.println("<table>");
 			
 			out.println("  <tr>");
 			out.println("    <th>#</th>");
-			out.println("    <th>Output</th>");
 			out.println("    <th>Input</th>");
+			out.println("    <th>Output</th>");
 			out.println("    <th>State</th>");
 			out.println("    <th>Transferred</th>");
 			out.println("  </tr>");
@@ -46,8 +56,8 @@ public class StatusRequestHandler implements HttpRequestHandler {
 				
 				out.println("  <tr>");
 				out.println("    <td>"+ i +"</td>");
-				out.println("    <td>"+ output.getName() +"</td>");
 				out.println("    <td>"+ input.getName() +"</td>");
+				out.println("    <td>"+ output.getName() +"</td>");
 				out.println("    <td>"+ stateString +"</td>");
 				out.println("    <td>"+ connection.getBytesTransferred() +"</td>");
 				out.println("  </tr>");
@@ -64,7 +74,7 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("<table>");
 			out.println("  <tr>");
 			out.println("    <th>#</th>");
-			out.println("    <th>Input</th>");
+			out.println("    <th>Stream</th>");
 			out.println("    <th>Status</th>");
 			out.println("  </tr>");
 
@@ -85,7 +95,7 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("<table>");
 			out.println("  <tr>");
 			out.println("    <th>#</th>");
-			out.println("    <th>Name</th>");
+			out.println("    <th>Stream</th>");
 			out.println("    <th>Status</th>");
 			out.println("  </tr>");
 			pos = 1;
