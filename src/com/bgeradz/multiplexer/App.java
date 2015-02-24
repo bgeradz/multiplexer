@@ -1,6 +1,8 @@
 package com.bgeradz.multiplexer;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -9,8 +11,9 @@ public class App {
 	private static CopyOnWriteArrayList<Connection> connections = new CopyOnWriteArrayList<Connection>();
 
 	private static final AtomicInteger curUniqueId = new AtomicInteger();
-	
-	private static final AtomicInteger trackedStreamCount = new AtomicInteger();
+
+	private static HashSet<TrackedInputStream> trackedInputStreams = new HashSet<TrackedInputStream>();
+	private static HashSet<TrackedOutputStream> trackedOutputStreams = new HashSet<TrackedOutputStream>();
 	
 	public static Logger createLogger(String tag) {
 		return new AppLogger(tag);
@@ -31,24 +34,28 @@ public class App {
 		return curUniqueId.incrementAndGet();
 	}
 	
-	public static void addTrackedInputStream(TrackedInputStream inputStream) {
-		trackedStreamCount.incrementAndGet();
+	public static synchronized void addTrackedInputStream(TrackedInputStream inputStream) {
+		trackedInputStreams.add(inputStream);
 	}
 	
 	public static void addTrackedOutputStream(TrackedOutputStream outputStream) {
-		trackedStreamCount.incrementAndGet();
+		trackedOutputStreams.add(outputStream);
 	}
 	
 	public static void removeTrackedInputStream(TrackedInputStream inputStream) {
-		trackedStreamCount.decrementAndGet();
+		trackedInputStreams.remove(inputStream);
 	}
 	
 	public static void removeTrackedOutputStream(TrackedOutputStream outputStream) {
-		trackedStreamCount.decrementAndGet();
+		trackedOutputStreams.remove(outputStream);
 	}
 	
-	public static int getTrackedStreamCount() {
-		return trackedStreamCount.get();
+	public static Set<TrackedInputStream> getTrackedInputStreams() {
+		return trackedInputStreams;
+	}
+	
+	public static Set<TrackedOutputStream> getTrackedOutputStreams() {
+		return trackedOutputStreams;
 	}
 	
 }

@@ -29,8 +29,8 @@ public class ProxyRequestHandler implements HttpRequestHandler {
 		String surl = buf.toString();
 		L.info("Relaying to "+ surl);
 		URL url = new URL(surl);
-		TrackedInputStream input = new TrackedInputStream(url.openStream());
-		new Connection(urlBase, input, request.getOutputStream());
+		TrackedInputStream input = new TrackedInputStream(url.openStream(), urlBase);
+		new Connection(input, request.getOutputStream());
 		HttpResponse response = new HttpResponse(request, input);
 		return response;
 	}

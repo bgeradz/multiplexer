@@ -25,7 +25,7 @@ public class ProcessOutputDataSource implements DataSource {
 		public TrackedInputStream handle() throws IOException {
 			L.info("Starting process");
 			Process process = Runtime.getRuntime().exec(command);
-			input = new TrackedInputStream(process.getInputStream());
+			input = new TrackedInputStream(process.getInputStream(), command);
 			this.process = process;
 			
 			input.addTracker(new IOTrackerAdapter() {

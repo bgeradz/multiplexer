@@ -25,8 +25,8 @@ public class HttpRequest implements Closeable {
 		name = socket.getInetAddress().toString() + ":" + socket.getPort();
 		L = App.createLogger(getClass().getSimpleName() + "[" + name + "]");
 
-		input = new TrackedInputStream(socket.getInputStream());
-		output = new TrackedOutputStream(socket.getOutputStream());
+		input = new TrackedInputStream(socket.getInputStream(), name);
+		output = new TrackedOutputStream(socket.getOutputStream(), name);
 		input.addTracker(new IOTrackerAdapter() {
 			@Override
 			public void onClose(TrackedInputStream inputStream,	IOException cause) {
@@ -83,6 +83,10 @@ public class HttpRequest implements Closeable {
 		
 		arr = uri.split("\\?");
 		path = arr[0];
+		
+		input.setName(input.getName() + " " + path);
+		output.setName(output.getName() + " " + path);
+		
 		if (arr.length > 1) {
 			arr = arr[1].split("\\&");
 			for (String pairString : arr) {

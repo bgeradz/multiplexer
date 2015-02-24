@@ -11,8 +11,8 @@ public class StatusRequestHandler implements HttpRequestHandler {
 	@Override
 	public HttpResponse getResponse(HttpRequest request) throws IOException {
 		byte[] answer = new Answer().create();
-		TrackedInputStream input = new TrackedInputStream(new ByteArrayInputStream(answer));
-		new Connection("status", input, request.getOutputStream());
+		TrackedInputStream input = new TrackedInputStream(new ByteArrayInputStream(answer), "status");
+		new Connection(input, request.getOutputStream());
 		return new HttpResponse(request, input);
 	}
 	
@@ -42,9 +42,13 @@ public class StatusRequestHandler implements HttpRequestHandler {
 					stateString += " ("+ stateDuration +"ms)";
 				}
 				
+				TrackedInputStream input = connection.getInput();
+				TrackedOutputStream output = connection.getOutput();
+				String desc = input.getName() + " => " + output.getName();
+				
 				out.println("  <tr>");
 				out.println("    <td>"+ i +"</td>");
-				out.println("    <td>"+ connection.getName() +"</td>");
+				out.println("    <td>"+ desc +"</td>");
 				out.println("    <td>"+ stateString +"</td>");
 				out.println("    <td>"+ connection.getBytesTransferred() +"</td>");
 				out.println("  </tr>");
@@ -52,7 +56,16 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			
 			out.println("</table>");
 			
-			out.println("Open streams: "+ App.getTrackedStreamCount());
+			out.println("Open input streams: <br />");
+			for (TrackedInputStream input : App.getTrackedInputStreams()) {
+				out.println("&nbsp;&nbsp;&nbsp" + input.getName() + "<br />");
+			}
+			out.println("<br />");
+			out.println("Open output streams: <br>");
+			for (TrackedOutputStream output : App.getTrackedOutputStreams()) {
+				out.println("&nbsp;&nbsp;&nbsp" + output.getName() + "<br />");
+			}
+			
 			
 			out.println("</body></html>");
 			

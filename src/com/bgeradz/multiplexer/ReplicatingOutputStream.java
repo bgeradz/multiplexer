@@ -8,8 +8,8 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 	
 	private CopyOnWriteArrayList<TrackedOutputStream> outputStreams = new CopyOnWriteArrayList<TrackedOutputStream>();
 	
-	public ReplicatingOutputStream() {
-		super(null);
+	public ReplicatingOutputStream(String name) {
+		super(null, name);
 		addTracker(new IOTrackerAdapter() {
 			@Override
 			public void onClose(TrackedInputStream inputStream,	IOException cause) {

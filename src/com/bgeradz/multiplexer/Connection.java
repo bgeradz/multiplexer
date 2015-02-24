@@ -14,8 +14,6 @@ public class Connection {
 	private long totalBytesRead;
 	private long totalBytesWritten;
 
-	private String name;
-	
 	private TrackedInputStream input;
 	private TrackedOutputStream output;
 	
@@ -28,8 +26,7 @@ public class Connection {
 	private State state;
 	ConnectionIOTracker tracker;
 
-	public Connection(String name, TrackedInputStream input, TrackedOutputStream output) {
-		this.name = name;
+	public Connection(TrackedInputStream input, TrackedOutputStream output) {
 		this.input = input;
 		this.output = output;
 		tracker = new ConnectionIOTracker();
@@ -38,11 +35,15 @@ public class Connection {
 		App.addConnection(this);
 		state = State.IDLE;
 	}
-	
-	public String getName() {
-		return name;
+
+	public TrackedInputStream getInput() {
+		return input;
 	}
-		
+	
+	public TrackedOutputStream getOutput() {
+		return output;
+	}
+	
 	public long getBytesTransferred() {
 		return totalBytesWritten;
 	}
@@ -114,8 +115,8 @@ public class Connection {
 			inputClosed = true;
 			if (autoCloseOutput) {
 				output.close();
-				checkClosed();
 			}
+			checkClosed();
 		}
 		
 		@Override
@@ -123,8 +124,8 @@ public class Connection {
 			outputClosed = true;
 			if (autoCloseInput) {
 				input.close();
-				checkClosed();
 			}
+			checkClosed();
 		}
 	}
 }

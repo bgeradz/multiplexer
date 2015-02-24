@@ -9,11 +9,21 @@ public class TrackedInputStream extends InputStream {
 	
 	private CopyOnWriteArrayList<IOTracker> trackers = new CopyOnWriteArrayList<IOTracker>();
 	
+	private String name;
 	private boolean isClosed;
 
-	public TrackedInputStream(InputStream wrapee) {
+	public TrackedInputStream(InputStream wrapee, String name) {
 		this.wrapee = wrapee;
+		this.name = name;
 		App.addTrackedInputStream(this);
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getName() {
+		return name;
 	}
 	
 	public synchronized void addTracker(IOTracker tracker) {

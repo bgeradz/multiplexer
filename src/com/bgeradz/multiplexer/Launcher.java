@@ -68,14 +68,14 @@ public class Launcher {
 					throw new IllegalArgumentException("Invalid url "+ surl +", argument "+ argIndex);
 				}
 				DataSource dataSource = new UrlDataSource(url);
-				handler = getStreamHandler(surl, dataSource, replicate);
+				handler = getStreamHandler(path, dataSource, replicate);
 			} else if ("process".equals(dataSourceType)) {
 				String command = nextArg();
 				if (command == null) {
 					throw new IllegalArgumentException("Expecting command, argument "+ argIndex);
 				}
 				DataSource dataSource = new ProcessOutputDataSource(command);
-				handler = getStreamHandler(command, dataSource, replicate);
+				handler = getStreamHandler(path, dataSource, replicate);
 			} else if ("command".equals(dataSourceType)) {
 				String command = nextArg();
 				if (command == null) {

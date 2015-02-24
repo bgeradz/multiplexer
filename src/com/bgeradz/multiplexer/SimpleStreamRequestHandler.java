@@ -15,7 +15,7 @@ public class SimpleStreamRequestHandler implements HttpRequestHandler {
 	public HttpResponse getResponse(HttpRequest request) throws IOException {
 		TrackedInputStream inputStream = dataSource.open();
 		HttpResponse response = new HttpResponse(request, inputStream);
-		new Connection(name, inputStream, request.getOutputStream());
+		new Connection(inputStream, request.getOutputStream());
 		return response;
 	}
 }

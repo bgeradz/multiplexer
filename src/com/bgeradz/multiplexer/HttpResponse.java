@@ -50,7 +50,7 @@ public class HttpResponse implements Closeable {
 		this.request = request;
 		this.message = message;
 		this.status = status;
-		this.input = new TrackedInputStream(new ByteArrayInputStream(message.getBytes()));
+		this.input = new TrackedInputStream(new ByteArrayInputStream(message.getBytes()), "status");
 		this.output = request.getOutputStream();
 		
 		inferMimeType(request.getPath());

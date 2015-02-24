@@ -12,6 +12,6 @@ public class UrlDataSource implements DataSource {
 	
 	@Override
 	public TrackedInputStream open() throws IOException {
-		return new TrackedInputStream(url.openStream());
+		return new TrackedInputStream(url.openStream(), url.toString());
 	}
 }

@@ -1,5 +1,6 @@
 package com.bgeradz.multiplexer;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 
 public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
@@ -29,26 +30,28 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 	@Override
 	public synchronized HttpResponse getResponse(HttpRequest request) throws IOException {
 		if (thread == null) {
-			replicatingOutput = new ReplicatingOutputStream();
-			replicatingOutput.addTracker(new IOTrackerAdapter() {
-				@Override
-				public void onClose(TrackedOutputStream inputStream, IOException cause) {
-					synchronized (ReplicatingStreamRequestHandler.this) {
-						stopThread();
-					}
-				}
-			});
-			
+			shouldStop = false;
 			try {
+				id = App.getUniqueId();
+
 				input = dataSource.open();
+				replicatingOutput = new ReplicatingOutputStream("REP["+ id +"] ("+ name +")");
+				replicatingOutput.addTracker(new IOTrackerAdapter() {
+					@Override
+					public void onClose(TrackedOutputStream inputStream, IOException cause) {
+						synchronized (ReplicatingStreamRequestHandler.this) {
+							stopThread();
+						}
+					}
+				});
+
 				input.addTracker(new IOTrackerAdapter() {
 					@Override
 					public void onClose(TrackedInputStream inputStream, IOException cause) {
 						replicatingOutput.close();
 					}
 				});
-				id = App.getUniqueId();
-				new Connection("REP["+ id +"] <= "+ name, input, replicatingOutput);			
+				new Connection(input, replicatingOutput);			
 			} catch (IOException e) {
 				Util.close(request.getOutputStream());
 				throw e;
@@ -58,14 +61,28 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		}
 		
 		CircularByteBuffer buffer = new CircularByteBuffer(BUFFER_SIZE, false);
-		final TrackedOutputStream bufferOutputStream = new TrackedOutputStream(buffer.getOutputStream());
-		final TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream());
+		String bufferName = "buffer["+ App.getUniqueId() +"] ("+ name +")";
+		final TrackedOutputStream bufferOutputStream = new TrackedOutputStream(buffer.getOutputStream(), bufferName);
+		final TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream(), bufferName);
 		
 		replicatingOutput.addOutputStream(bufferOutputStream);
 		
-		String resource = "("+ request.getName() +" "+ request.getPath() +")";
-		String connectionName = "REP["+ id +"] >= buffer for " + resource;		
-		new Connection(connectionName, input, bufferOutputStream).autoCloseInput(false);
+		TrackedInputStream inputWrapper = new TrackedInputStream(input, "REP["+ id +"] ("+ name +")");
+		new Connection(inputWrapper, bufferOutputStream).autoCloseInput(false);
+		new Connection(bufferInputStream, request.getOutputStream());
+		
+		bufferInputStream.addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedInputStream inputStream, IOException cause) {
+				bufferOutputStream.close();
+			}
+		});
+		bufferOutputStream.addTracker(new IOTrackerAdapter() {
+			@Override
+			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+				bufferInputStream.close();
+			}
+		});
 		
 		HttpResponse response = new HttpResponse(request, bufferInputStream);
 		return response;
@@ -88,7 +105,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 				while (true) {
 					synchronized (this) {
 						if (shouldStop) {
-							shouldStop = false;
+							L.info("shouldStop, breaking loop");
 							break;
 						}
 					}
@@ -98,10 +115,11 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 			} catch (IOException e) {
 				L.warn("Input exception: "+ e);
 			} finally {
-				Util.close(input);
-				Util.close(replicatingOutput);
+				input.close();
+				replicatingOutput.close();
 				synchronized (this) {
 					thread = null;
+					shouldStop = false;
 				}
 				L.info("Thread terminated");
 			}

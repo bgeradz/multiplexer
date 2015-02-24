@@ -5,15 +5,26 @@ import java.io.OutputStream;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TrackedOutputStream extends OutputStream {
+	private static final Logger L = App.createLogger(TrackedOutputStream.class.getSimpleName());
 	protected OutputStream wrapee;
 	
 	protected CopyOnWriteArrayList<IOTracker> trackers = new CopyOnWriteArrayList<IOTracker>();
 
+	protected String name;
 	protected boolean isClosed;
 	
-	public TrackedOutputStream(OutputStream wrapee) {
+	public TrackedOutputStream(OutputStream wrapee, String name) {
 		this.wrapee = wrapee;
+		this.name = name;
 		App.addTrackedOutputStream(this);
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	public synchronized void addTracker(IOTracker tracker) {

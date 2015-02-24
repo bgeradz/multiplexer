@@ -15,7 +15,7 @@ public class CommandRequestHandler implements HttpRequestHandler {
 	public HttpResponse getResponse(HttpRequest request) throws IOException {
 		String param = request.getParam(paramName);
 		final Process process = Runtime.getRuntime().exec(new String[]{command, param});
-		TrackedInputStream input = new TrackedInputStream(process.getInputStream());
+		TrackedInputStream input = new TrackedInputStream(process.getInputStream(), command);
 		input.addTracker(new IOTrackerAdapter() {
 			@Override
 			public void onClose(TrackedInputStream inputStream, IOException cause) {
@@ -25,7 +25,7 @@ public class CommandRequestHandler implements HttpRequestHandler {
 				} catch (InterruptedException e) {}
 			}			
 		});
-		new Connection(command, input, request.getOutputStream());
+		new Connection(input, request.getOutputStream());
 		HttpResponse response = new HttpResponse(request, input);	
 		return response;
 	}
