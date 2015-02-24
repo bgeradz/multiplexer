@@ -22,6 +22,9 @@ public class Connection {
 	private boolean inputClosed;
 	private boolean outputClosed;
 	
+	private boolean autoCloseInput = true;
+	private boolean autoCloseOutput = true;
+	
 	private State state;
 	ConnectionIOTracker tracker;
 
@@ -52,14 +55,22 @@ public class Connection {
 		return lastStateChangeTime;
 	}
 
-
-	private void switchState(State state) {
+	public Connection autoCloseInput(boolean value) {
+		this.autoCloseInput = value;
+		return this;
+	}
+	public Connection autoCloseOutput(boolean value) {
+		this.autoCloseOutput = value;
+		return this;
+	}
+	
+ 	private void switchState(State state) {
 		this.state = state;
 		lastStateChangeTime = System.currentTimeMillis();
 	}
 	
 	private void checkClosed() {
-		if (inputClosed && outputClosed) {
+		if ((inputClosed || ! autoCloseInput) && (outputClosed || ! autoCloseOutput)) {
 			App.removeConnection(this);
 		}
 	}
@@ -101,15 +112,19 @@ public class Connection {
 		@Override
 		public void onClose(TrackedInputStream inputStream, IOException cause) {
 			inputClosed = true;
-			output.close();
-			checkClosed();
+			if (autoCloseOutput) {
+				output.close();
+				checkClosed();
+			}
 		}
 		
 		@Override
 		public void onClose(TrackedOutputStream outputStream, IOException cause) {
 			outputClosed = true;
-			input.close();
-			checkClosed();
+			if (autoCloseInput) {
+				input.close();
+				checkClosed();
+			}
 		}
 	}
 }

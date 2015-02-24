@@ -48,7 +48,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 					}
 				});
 				id = App.getUniqueId();
-				new Connection("REP["+ id +"] ("+ name +")", input, replicatingOutput);			
+				new Connection("REP["+ id +"] <= "+ name, input, replicatingOutput);			
 			} catch (IOException e) {
 				Util.close(request.getOutputStream());
 				throw e;
@@ -61,9 +61,12 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		final TrackedOutputStream bufferOutputStream = new TrackedOutputStream(buffer.getOutputStream());
 		final TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream());
 		
-		String connectionName = "REP["+ id +"] >= ("+ request.getName() +" "+ request.getPath() +")";
 		replicatingOutput.addOutputStream(bufferOutputStream);
-		new Connection(connectionName, bufferInputStream, bufferOutputStream);
+		
+		String resource = "("+ request.getName() +" "+ request.getPath() +")";
+		String connectionName = "REP["+ id +"] >= buffer for " + resource;		
+		new Connection(connectionName, input, bufferOutputStream).autoCloseInput(false);
+		
 		HttpResponse response = new HttpResponse(request, bufferInputStream);
 		return response;
 	}
