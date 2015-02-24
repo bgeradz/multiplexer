@@ -51,7 +51,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 						replicatingOutput.close();
 					}
 				});
-				new Connection(input, replicatingOutput);			
+				new Connection(input, replicatingOutput);
 			} catch (IOException e) {
 				Util.close(request.getOutputStream());
 				throw e;
@@ -61,14 +61,13 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		}
 		
 		CircularByteBuffer buffer = new CircularByteBuffer(BUFFER_SIZE, false);
-		String bufferName = "buffer["+ App.getUniqueId() +"] ("+ name +")";
+		String bufferName = "REP["+ id +"]:buffer["+ App.getUniqueId() +"] ("+ name +")";
 		final TrackedOutputStream bufferOutputStream = new TrackedOutputStream(buffer.getOutputStream(), bufferName);
 		final TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream(), bufferName);
 		
 		replicatingOutput.addOutputStream(bufferOutputStream);
 		
-		TrackedInputStream inputWrapper = new TrackedInputStream(input, "REP["+ id +"] ("+ name +")");
-		new Connection(inputWrapper, bufferOutputStream).autoCloseInput(false);
+		new Connection(input, bufferOutputStream).autoCloseInput(false);
 		new Connection(bufferInputStream, request.getOutputStream());
 		
 		bufferInputStream.addTracker(new IOTrackerAdapter() {

@@ -44,7 +44,8 @@ public class StatusRequestHandler implements HttpRequestHandler {
 				
 				TrackedInputStream input = connection.getInput();
 				TrackedOutputStream output = connection.getOutput();
-				String desc = input.getName() + " => " + output.getName();
+				// String desc = input.getName() + " => " + output.getName();
+				String desc = output.getName() + " <= " + input.getName();
 				
 				out.println("  <tr>");
 				out.println("    <td>"+ i +"</td>");
@@ -56,10 +57,12 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			
 			out.println("</table>");
 			
+			out.println("<br />");
 			out.println("Open input streams: <br />");
 			for (TrackedInputStream input : App.getTrackedInputStreams()) {
 				out.println("&nbsp;&nbsp;&nbsp" + input.getName() + "<br />");
 			}
+			
 			out.println("<br />");
 			out.println("Open output streams: <br>");
 			for (TrackedOutputStream output : App.getTrackedOutputStreams()) {
