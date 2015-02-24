@@ -8,8 +8,14 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 	
 	private CopyOnWriteArrayList<TrackedOutputStream> outputStreams = new CopyOnWriteArrayList<TrackedOutputStream>();
 	
-	public ReplicatingOutputStream(String name) {
+	private long autoCloseDelay;
+	
+	private long lastWriteTime;
+	
+	public ReplicatingOutputStream(String name, long autoCloseDelay) {
 		super(null, name);
+		this.autoCloseDelay = autoCloseDelay;
+		lastWriteTime = System.currentTimeMillis();
 		addTracker(new IOTrackerAdapter() {
 			@Override
 			public void onClose(TrackedInputStream inputStream,	IOException cause) {
@@ -39,9 +45,6 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 		if (outputStreams.contains(output)) {
 			outputStreams.remove(output);
 			L.info("Output removed ("+ outputStreams.size() +")");
-			if (outputStreams.size() == 0) {
-				close();
-			}
 		}
 	}
 
@@ -66,12 +69,21 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 				throw new IOException("isClosed");
 			}
 			
+			long now = System.currentTimeMillis();
+			
 			for (TrackedOutputStream output : outputStreams) {
 				try {
+					lastWriteTime = now;
 					output.write(b, off, len);
 				} catch (IOException e) {
 					Util.close(output);
 				}
+			}
+			
+			long elapsedSinceLastWrite = now - lastWriteTime; 
+			if (elapsedSinceLastWrite > autoCloseDelay) {
+				L.info("Elapsed since last write: "+ elapsedSinceLastWrite + " ms, closing");
+				throw new IOException("Elapsed since last write: "+ elapsedSinceLastWrite + " ms, closing");
 			}
 			
 			for (IOTracker tracker : trackers) {

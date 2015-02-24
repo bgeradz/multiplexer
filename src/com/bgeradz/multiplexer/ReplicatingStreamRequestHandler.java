@@ -1,6 +1,5 @@
 package com.bgeradz.multiplexer;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 
 public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
@@ -8,6 +7,10 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 	
 	private static final int BUFFER_SIZE = 256 * 1024;
 	private static final int BLOCK_SIZE = 4 * 1024;
+	
+	// Close when this much time has passed with no active reading clients.
+	// TODO: make configurable.
+	private static final long AUTO_CLOSE_DELAY = 10000;
 	
 	private DataSource dataSource;
 	private TrackedInputStream input;
@@ -35,7 +38,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 				id = App.getUniqueId();
 
 				input = dataSource.open();
-				replicatingOutput = new ReplicatingOutputStream("REP["+ id +"] ("+ name +")");
+				replicatingOutput = new ReplicatingOutputStream("REP["+ id +"] ("+ name +")", AUTO_CLOSE_DELAY);
 				replicatingOutput.addTracker(new IOTrackerAdapter() {
 					@Override
 					public void onClose(TrackedOutputStream inputStream, IOException cause) {
