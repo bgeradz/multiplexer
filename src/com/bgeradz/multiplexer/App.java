@@ -1,8 +1,7 @@
 package com.bgeradz.multiplexer;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,8 +11,8 @@ public class App {
 
 	private static final AtomicInteger curUniqueId = new AtomicInteger();
 
-	private static HashSet<TrackedInputStream> trackedInputStreams = new HashSet<TrackedInputStream>();
-	private static HashSet<TrackedOutputStream> trackedOutputStreams = new HashSet<TrackedOutputStream>();
+	private static CopyOnWriteArrayList<TrackedInputStream> trackedInputStreams = new CopyOnWriteArrayList<TrackedInputStream>();
+	private static CopyOnWriteArrayList<TrackedOutputStream> trackedOutputStreams = new CopyOnWriteArrayList<TrackedOutputStream>();
 	
 	public static Logger createLogger(String tag) {
 		return new AppLogger(tag);
@@ -50,11 +49,11 @@ public class App {
 		trackedOutputStreams.remove(outputStream);
 	}
 	
-	public static Set<TrackedInputStream> getTrackedInputStreams() {
+	public static List<TrackedInputStream> getTrackedInputStreams() {
 		return trackedInputStreams;
 	}
 	
-	public static Set<TrackedOutputStream> getTrackedOutputStreams() {
+	public static List<TrackedOutputStream> getTrackedOutputStreams() {
 		return trackedOutputStreams;
 	}
 	

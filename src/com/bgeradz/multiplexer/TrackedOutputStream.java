@@ -13,6 +13,8 @@ public class TrackedOutputStream extends OutputStream {
 	protected String name;
 	protected boolean isClosed;
 	
+	protected long lastWriteTime;
+	
 	public TrackedOutputStream(OutputStream wrapee, String name) {
 		this.wrapee = wrapee;
 		this.name = name;
@@ -25,6 +27,10 @@ public class TrackedOutputStream extends OutputStream {
 	
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public long getLastWriteTime() {
+		return lastWriteTime;
 	}
 	
 	public synchronized void addTracker(IOTracker tracker) {
@@ -46,6 +52,7 @@ public class TrackedOutputStream extends OutputStream {
 				throw new IOException("isClosed");
 			}
 			wrapee.write(b, off, len);
+			lastWriteTime = System.currentTimeMillis();
 			for (IOTracker tracker : trackers) {
 				tracker.afterWrite(this, b, off, len);
 			}

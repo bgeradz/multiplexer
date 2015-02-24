@@ -31,16 +31,14 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("    <th>Transferred</th>");
 			out.println("  </tr>");
 			
+			long now = System.currentTimeMillis();
+			
 			List<Connection> connections = App.getConnections();
 			for (int i = 0; i < connections.size(); i++) {
 				Connection connection = connections.get(i);
 				
 				String stateString = connection.getState().toString();
-				long now = System.currentTimeMillis();
-				long stateDuration = now - connection.getLastStateChangeTime();
-				if (now > 1000) {
-					stateString += " ("+ stateDuration +"ms)";
-				}
+				stateString += " ("+ formatTimeAgo(now, connection.getLastStateChangeTime()) + ")";
 				
 				TrackedInputStream input = connection.getInput();
 				TrackedOutputStream output = connection.getOutput();
@@ -60,13 +58,15 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("<br />");
 			out.println("Open input streams: <br />");
 			for (TrackedInputStream input : App.getTrackedInputStreams()) {
-				out.println("&nbsp;&nbsp;&nbsp" + input.getName() + "<br />");
+				String lastRead = formatTimeAgo(now, input.getLastReadTime());
+				out.println("&nbsp;&nbsp;&nbsp" + input.getName() +" (last read: "+lastRead+ ")<br />");
 			}
 			
 			out.println("<br />");
 			out.println("Open output streams: <br>");
 			for (TrackedOutputStream output : App.getTrackedOutputStreams()) {
-				out.println("&nbsp;&nbsp;&nbsp" + output.getName() + "<br />");
+				String lastWrite = formatTimeAgo(now, output.getLastWriteTime());
+				out.println("&nbsp;&nbsp;&nbsp" + output.getName() +" (last write: "+lastWrite+ ")<br />");
 			}
 			
 			
@@ -74,6 +74,19 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			
 			out.flush();
 			return outStream.toByteArray();
+		}
+		
+		private String formatTimeAgo(long now, long event) {
+			if (event == 0L) {
+				return "never";
+			} else {
+				long elapsed = now - event;
+				if (elapsed < 1000) {
+					return elapsed + " ms ago";
+				} else {
+					return (elapsed / 1000) + " sec ago";
+				}
+			}
 		}
 	}
 }

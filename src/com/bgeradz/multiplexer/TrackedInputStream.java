@@ -11,6 +11,8 @@ public class TrackedInputStream extends InputStream {
 	
 	private String name;
 	private boolean isClosed;
+	
+	private long lastReadTime;
 
 	public TrackedInputStream(InputStream wrapee, String name) {
 		this.wrapee = wrapee;
@@ -24,6 +26,10 @@ public class TrackedInputStream extends InputStream {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public long getLastReadTime() {
+		return lastReadTime;
 	}
 	
 	public synchronized void addTracker(IOTracker tracker) {
@@ -45,6 +51,7 @@ public class TrackedInputStream extends InputStream {
 				throw new IOException("isClosed");
 			}
 			int ret = wrapee.read(b, off, len);
+			lastReadTime = System.currentTimeMillis();
 			for (IOTracker tracker : trackers) {
 				tracker.afterRead(this, ret, b, off, len);
 			}
