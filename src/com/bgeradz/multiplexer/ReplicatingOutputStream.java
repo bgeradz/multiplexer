@@ -18,7 +18,7 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 		lastWriteTime = System.currentTimeMillis();
 		addTracker(new IOTrackerAdapter() {
 			@Override
-			public void onClose(TrackedInputStream inputStream,	IOException cause) {
+			public void onClose(TrackedInputStream inputStream,	Throwable cause) {
 				closeOutputs();
 			}
 		});
@@ -33,7 +33,7 @@ public class ReplicatingOutputStream extends TrackedOutputStream {
 	public synchronized void addOutputStream(final TrackedOutputStream output) throws IOException {
 		output.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+			public void onClose(TrackedOutputStream outputStream, Throwable cause) {
 				removeOutputStream(output);
 			}
 		});

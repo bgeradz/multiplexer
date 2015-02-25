@@ -33,13 +33,13 @@ public class HttpResponse implements Closeable {
 		this.output = request.getOutputStream();
 		input.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void onClose(TrackedInputStream inputStream,	IOException cause) {
+			public void onClose(TrackedInputStream inputStream,	Throwable cause) {
 				close();
 			}
 		});
 		output.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+			public void onClose(TrackedOutputStream outputStream, Throwable cause) {
 				close();
 			}			
 		});

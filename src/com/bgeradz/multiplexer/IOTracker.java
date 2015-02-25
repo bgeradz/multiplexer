@@ -11,6 +11,6 @@ public interface IOTracker {
 	void afterWrite(TrackedOutputStream outputStream, byte[] buffer, int offset, int length);
 	void afterWriteException(TrackedOutputStream outputStream, IOException exception, byte[] buffer, int offset, int length);
 	
-	void onClose(TrackedInputStream inputStream, IOException cause);
-	void onClose(TrackedOutputStream outputStream, IOException cause);
+	void onClose(TrackedInputStream inputStream, Throwable cause);
+	void onClose(TrackedOutputStream outputStream, Throwable cause);
 }

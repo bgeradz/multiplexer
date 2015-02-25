@@ -23,9 +23,9 @@ public class IOTrackerAdapter implements IOTracker {
 	public void afterWriteException(TrackedOutputStream outputStream, IOException exception, byte[] buffer, int offset, int length) {}
 
 	@Override
-	public void onClose(TrackedInputStream inputStream, IOException cause) {}
+	public void onClose(TrackedInputStream inputStream, Throwable cause) {}
 
 	@Override
-	public void onClose(TrackedOutputStream outputStream, IOException cause) {}
+	public void onClose(TrackedOutputStream outputStream, Throwable cause) {}
 
 }

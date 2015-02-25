@@ -41,7 +41,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 				replicatingOutput = new ReplicatingOutputStream("REP["+ id +"] ("+ name +")", AUTO_CLOSE_DELAY);
 				replicatingOutput.addTracker(new IOTrackerAdapter() {
 					@Override
-					public void onClose(TrackedOutputStream inputStream, IOException cause) {
+					public void onClose(TrackedOutputStream inputStream, Throwable cause) {
 						synchronized (ReplicatingStreamRequestHandler.this) {
 							stopThread();
 						}
@@ -50,7 +50,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 
 				input.addTracker(new IOTrackerAdapter() {
 					@Override
-					public void onClose(TrackedInputStream inputStream, IOException cause) {
+					public void onClose(TrackedInputStream inputStream, Throwable cause) {
 						replicatingOutput.close();
 					}
 				});
@@ -75,13 +75,13 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		
 		bufferInputStream.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void onClose(TrackedInputStream inputStream, IOException cause) {
+			public void onClose(TrackedInputStream inputStream, Throwable cause) {
 				bufferOutputStream.close();
 			}
 		});
 		bufferOutputStream.addTracker(new IOTrackerAdapter() {
 			@Override
-			public void onClose(TrackedOutputStream outputStream, IOException cause) {
+			public void onClose(TrackedOutputStream outputStream, Throwable cause) {
 				bufferInputStream.close();
 			}
 		});

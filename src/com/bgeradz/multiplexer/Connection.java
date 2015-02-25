@@ -111,7 +111,7 @@ public class Connection {
 		}
 
 		@Override
-		public void onClose(TrackedInputStream inputStream, IOException cause) {
+		public void onClose(TrackedInputStream inputStream, Throwable cause) {
 			inputClosed = true;
 			if (autoCloseOutput) {
 				output.close();
@@ -120,7 +120,7 @@ public class Connection {
 		}
 		
 		@Override
-		public void onClose(TrackedOutputStream outputStream, IOException cause) {
+		public void onClose(TrackedOutputStream outputStream, Throwable cause) {
 			outputClosed = true;
 			if (autoCloseInput) {
 				input.close();

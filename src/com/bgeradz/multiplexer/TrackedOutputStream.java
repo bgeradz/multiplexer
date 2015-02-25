@@ -67,7 +67,7 @@ public class TrackedOutputStream extends OutputStream {
 		close(null);
 	}
 	
-	protected void close(IOException cause) {
+	protected void close(Throwable cause) {
 		boolean closed = false;
 		synchronized (this) {
 			if (! isClosed) {

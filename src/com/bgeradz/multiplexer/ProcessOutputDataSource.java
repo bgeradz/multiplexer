@@ -30,7 +30,7 @@ public class ProcessOutputDataSource implements DataSource {
 			
 			input.addTracker(new IOTrackerAdapter() {
 				@Override
-				public void onClose(TrackedInputStream inputStream, IOException cause) {
+				public void onClose(TrackedInputStream inputStream, Throwable cause) {
 					L.info("Input closed, cause: "+ cause);
 					shutdown();
 				}
