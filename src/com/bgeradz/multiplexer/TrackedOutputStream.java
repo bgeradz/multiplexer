@@ -2,6 +2,7 @@ package com.bgeradz.multiplexer;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.BufferOverflowException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TrackedOutputStream extends OutputStream {
@@ -59,6 +60,9 @@ public class TrackedOutputStream extends OutputStream {
 		} catch (IOException e) {
 			close(e);
 			throw e;
+		} catch (BufferOverflowException boe) {
+			close(boe);
+			throw new IOException(boe);
 		}
 	}
 	
