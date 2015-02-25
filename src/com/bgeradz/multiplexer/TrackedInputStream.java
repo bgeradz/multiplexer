@@ -55,6 +55,9 @@ public class TrackedInputStream extends InputStream {
 			for (IOTracker tracker : trackers) {
 				tracker.afterRead(this, ret, b, off, len);
 			}
+			if (ret < 0) {
+				close();
+			}
 			return ret;
 		} catch (IOException e) {
 			close(e);

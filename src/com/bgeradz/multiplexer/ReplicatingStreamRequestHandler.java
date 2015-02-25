@@ -112,6 +112,9 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 						}
 					}
 					int bytesRead = input.read(block);
+					if (bytesRead <= 0) {
+						break;
+					}
 					replicatingOutput.write(block, 0, bytesRead);
 				}
 			} catch (IOException e) {
