@@ -128,4 +128,15 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			}
 		}
 	}
+
+    public static class Config implements Configurator<StatusRequestHandler> {
+        @Override
+        public void validate() throws ConfigException {
+        }
+
+        @Override
+        public StatusRequestHandler build() {
+            return new StatusRequestHandler();
+        }
+    }
 }

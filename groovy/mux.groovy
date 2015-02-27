@@ -113,6 +113,12 @@ class ProxyHandlerElement extends HandlerElement {
     }
 }
 
+class StatusHandlerElement extends HandlerElement {
+    StatusHandlerElement() {
+        super(new com.bgeradz.multiplexer.StatusRequestHandler.Config())
+    }
+}
+
 class CommandHandlerElement extends HandlerElement {
     CommandHandlerElement() {
         super(new com.bgeradz.multiplexer.CommandRequestHandler.Config())
@@ -140,6 +146,9 @@ class Mux extends Element {
     }
     void command(closure) {
         addHandler(new CommandHandlerElement(), closure)
+    }
+    void status(closure) {
+        addHandler(new StatusHandlerElement(), closure)
     }
 
 }
