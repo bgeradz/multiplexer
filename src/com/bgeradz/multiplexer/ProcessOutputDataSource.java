@@ -53,4 +53,27 @@ public class ProcessOutputDataSource implements DataSource {
 			}
 		}
 	}
+
+    public static class Config implements Configurator<ProcessOutputDataSource> {
+        private String command;
+
+        public void setCommand(String command) {
+            this.command = command;
+        }
+        public String getCommand() {
+            return command;
+        }
+
+        @Override
+        public void validate() throws ConfigException {
+            if (command == null) {
+                throw new ConfigException("command unspecified");
+            }
+        }
+
+        @Override
+        public ProcessOutputDataSource build() {
+            return new ProcessOutputDataSource(command);
+        }
+    }
 }

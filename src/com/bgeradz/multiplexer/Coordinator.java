@@ -13,6 +13,7 @@ public class Coordinator {
 	
 	public void addRequestHandler(String path, HttpRequestHandler handler) {
 		paths.add(path);
+        L.info(path + " => " + handler);
 		requestHandlers.add(handler);		
 	}
 	
@@ -25,4 +26,6 @@ public class Coordinator {
 		}
 		throw new FileNotFoundException(request.getPath());
 	}
+
+
 }

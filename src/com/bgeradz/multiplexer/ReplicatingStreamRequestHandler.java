@@ -130,4 +130,39 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 			}
 		}
 	}
+
+    public static class Config implements Configurator<ReplicatingStreamRequestHandler> {
+        private String name;
+        private Configurator<DataSource> dataSource;
+
+        public void setName(String name) {
+            this.name = name;
+        }
+        public String getName() {
+            return name;
+        }
+
+        public void setDataSource(Configurator<DataSource> dataSource) {
+            this.dataSource = dataSource;
+        }
+
+        public Configurator<DataSource> getDataSorce() {
+            return dataSource;
+        }
+
+        @Override
+        public void validate() throws ConfigException {
+            if (name == null) {
+                throw new ConfigException("name unspecified");
+            }
+            if (dataSource == null) {
+                throw new ConfigException("dataSource unspecified");
+            }
+        }
+
+        @Override
+        public ReplicatingStreamRequestHandler build() {
+            return new ReplicatingStreamRequestHandler(name, dataSource.build());
+        }
+    }
 }

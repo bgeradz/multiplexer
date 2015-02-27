@@ -29,4 +29,40 @@ public class CommandRequestHandler implements HttpRequestHandler {
 		HttpResponse response = new HttpResponse(request, input);	
 		return response;
 	}
+
+    public static class Config implements Configurator<CommandRequestHandler> {
+        private String command;
+        private String paramName;
+
+        public String getParamName() {
+            return paramName;
+        }
+
+        public void setParamName(String paramName) {
+            this.paramName = paramName;
+        }
+
+        public String getCommand() {
+            return command;
+        }
+
+        public void setCommand(String command) {
+            this.command = command;
+        }
+
+        @Override
+        public void validate() throws ConfigException {
+            if (command == null) {
+                throw new ConfigException("command unspecified");
+            }
+            if (paramName == null) {
+                throw new ConfigException("paramName unspecified");
+            }
+        }
+
+        @Override
+        public CommandRequestHandler build() {
+            return new CommandRequestHandler(command, paramName);
+        }
+    }
 }
