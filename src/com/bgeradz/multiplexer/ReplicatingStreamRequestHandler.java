@@ -5,14 +5,12 @@ import java.io.IOException;
 public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 	private final Logger L;
 	
-	private static final int BUFFER_SIZE = 256 * 1024;
-	private static final int BLOCK_SIZE = 4 * 1024;
-	
+	private final int clientBufferSize;
+	private final int blockSize;
 	// Close when this much time has passed with no active reading clients.
-	// TODO: make configurable.
-	private static final long AUTO_CLOSE_DELAY = 10000;
+	private final long autoCloseDelay;
 	
-	private DataSource dataSource;
+	private final DataSource dataSource;
 	private TrackedInputStream input;
 	private ReplicatingOutputStream replicatingOutput;
 	
@@ -24,10 +22,13 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 	
 	private int id;
 
-	public ReplicatingStreamRequestHandler(String name, DataSource dataSource) {
+	public ReplicatingStreamRequestHandler(Config config) {
 		L = App.createLogger(ReplicatingStreamRequestHandler.class.getSimpleName() + "[" + name +"]");
-		this.name = name;
-		this.dataSource = dataSource;
+		this.name = config.getName();
+		this.dataSource = config.getDataSorce().build();
+        this.clientBufferSize = config.getClientBufferSize();
+        this.blockSize = config.getBlockSize();
+        this.autoCloseDelay = config.getAutoCloseDelay();
 	}
 
 	@Override
@@ -38,7 +39,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 				id = App.getUniqueId();
 
 				input = dataSource.open();
-				replicatingOutput = new ReplicatingOutputStream("REP["+ id +"] ("+ name +")", AUTO_CLOSE_DELAY);
+				replicatingOutput = new ReplicatingOutputStream("REP["+ id +"] ("+ name +")", autoCloseDelay);
 				replicatingOutput.addTracker(new IOTrackerAdapter() {
 					@Override
 					public void onClose(TrackedOutputStream inputStream, Throwable cause) {
@@ -63,7 +64,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 			thread.start();
 		}
 		
-		CircularByteBuffer buffer = new CircularByteBuffer(BUFFER_SIZE, false);
+		CircularByteBuffer buffer = new CircularByteBuffer(clientBufferSize, false);
 		String bufferName = "REP["+ id +"]:buffer["+ App.getUniqueId() +"] ("+ name +")";
 		final TrackedOutputStream bufferOutputStream = new TrackedOutputStream(buffer.getOutputStream(), bufferName);
 		final TrackedInputStream bufferInputStream = new TrackedInputStream(buffer.getInputStream(), bufferName);
@@ -103,7 +104,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		public void run() {
 			L.info("Thread started");
 			try {
-				byte[] block = new byte[BLOCK_SIZE];
+				byte[] block = new byte[blockSize];
 				while (true) {
 					synchronized (this) {
 						if (shouldStop) {
@@ -134,6 +135,33 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
     public static class Config implements Configurator<ReplicatingStreamRequestHandler> {
         private String name;
         private Configurator<DataSource> dataSource;
+        private int clientBufferSize = 256 * 1024;
+        private int blockSize = 4 * 1024;
+        private long autoCloseDelay = 60000;
+
+        public int getClientBufferSize() {
+            return clientBufferSize;
+        }
+
+        public void setClientBufferSize(int clientBufferSize) {
+            this.clientBufferSize = clientBufferSize;
+        }
+
+        public int getBlockSize() {
+            return blockSize;
+        }
+
+        public void setBlockSize(int blockSize) {
+            this.blockSize = blockSize;
+        }
+
+        public long getAutoCloseDelay() {
+            return autoCloseDelay;
+        }
+
+        public void setAutoCloseDelay(long autoCloseDelay) {
+            this.autoCloseDelay = autoCloseDelay;
+        }
 
         public void setName(String name) {
             this.name = name;
@@ -162,7 +190,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 
         @Override
         public ReplicatingStreamRequestHandler build() {
-            return new ReplicatingStreamRequestHandler(name, dataSource.build());
+            return new ReplicatingStreamRequestHandler(this);
         }
     }
 }
