@@ -81,6 +81,7 @@ public class HttpResponse implements Closeable {
 	}
 	
 	public void setMimeType(String mimeType) {
+        L.info("Overridden mimeType to "+ mimeType);
 		this.mimeType = mimeType;
 	}
 	

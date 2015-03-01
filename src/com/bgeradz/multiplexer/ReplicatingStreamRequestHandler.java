@@ -13,6 +13,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 	private final DataSource dataSource;
 	private TrackedInputStream input;
 	private ReplicatingOutputStream replicatingOutput;
+    private String mimeType;
 	
 	private String name;
 	
@@ -29,6 +30,7 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
         this.clientBufferSize = config.getClientBufferSize();
         this.blockSize = config.getBlockSize();
         this.autoCloseDelay = config.getAutoCloseDelay();
+        this.mimeType = config.getMimeType();
 	}
 
 	@Override
@@ -88,6 +90,9 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
 		});
 		
 		HttpResponse response = new HttpResponse(request, bufferInputStream);
+        if (mimeType != null) {
+            response.setMimeType(mimeType);
+        }
 		return response;
 	}
 	
@@ -138,6 +143,15 @@ public class ReplicatingStreamRequestHandler implements HttpRequestHandler {
         private int clientBufferSize = 256 * 1024;
         private int blockSize = 4 * 1024;
         private long autoCloseDelay = 60000;
+        private String mimeType;
+
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        public void setMimeType(String mimeType) {
+            this.mimeType = mimeType;
+        }
 
         public int getClientBufferSize() {
             return clientBufferSize;
