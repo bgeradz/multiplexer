@@ -7,12 +7,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class App {
-	private static CopyOnWriteArrayList<Connection> connections = new CopyOnWriteArrayList<Connection>();
+    public static final int DEFAULT_SPEED_MEASURER_CAPACITY = 10;
+	private static int speedMeasurerCapacity = DEFAULT_SPEED_MEASURER_CAPACITY;
+
+    private static CopyOnWriteArrayList<Connection> connections = new CopyOnWriteArrayList<Connection>();
 
 	private static final AtomicInteger curUniqueId = new AtomicInteger();
 
 	private static CopyOnWriteArrayList<TrackedInputStream> trackedInputStreams = new CopyOnWriteArrayList<TrackedInputStream>();
 	private static CopyOnWriteArrayList<TrackedOutputStream> trackedOutputStreams = new CopyOnWriteArrayList<TrackedOutputStream>();
+
+    public static void setSpeedMeasurerCapacity(int speedMeasurerCapacity) {
+        App.speedMeasurerCapacity = speedMeasurerCapacity;
+    }
 	
 	public static Logger createLogger(String tag) {
 		return new AppLogger(tag);
@@ -23,6 +30,7 @@ public class App {
 	}
 	
 	public static synchronized void addConnection(Connection connection) {
+        connection.setSpeedMeasurer(new SpeedMeasurer(speedMeasurerCapacity));
 		connections.add(connection);
 	}
 	public static synchronized void removeConnection(Connection connection) {

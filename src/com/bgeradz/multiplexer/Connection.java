@@ -22,7 +22,9 @@ public class Connection {
 	
 	private boolean autoCloseInput = true;
 	private boolean autoCloseOutput = true;
-	
+
+    private SpeedMeasurer speedMeasurer;
+
 	private State state;
 	ConnectionIOTracker tracker;
 
@@ -35,6 +37,10 @@ public class Connection {
 		App.addConnection(this);
 		state = State.IDLE;
 	}
+
+    public void setSpeedMeasurer(SpeedMeasurer speedMeasurer) {
+        this.speedMeasurer = speedMeasurer;
+    }
 
 	public TrackedInputStream getInput() {
 		return input;
@@ -55,6 +61,14 @@ public class Connection {
 	public long getLastStateChangeTime() {
 		return lastStateChangeTime;
 	}
+
+    public double getAverageSpeed() {
+        if (speedMeasurer == null) {
+            return 0.0;
+        } else {
+            return speedMeasurer.getAverageSpeed();
+        }
+    }
 
 	public Connection autoCloseInput(boolean value) {
 		this.autoCloseInput = value;
@@ -103,6 +117,9 @@ public class Connection {
 		public void afterWrite(TrackedOutputStream outputStream, byte[] buffer,	int offset, int length) {
 			switchState(State.IDLE);
 			totalBytesWritten += length;
+            if (speedMeasurer != null) {
+                speedMeasurer.report(length);
+            }
 		}
 
 		@Override

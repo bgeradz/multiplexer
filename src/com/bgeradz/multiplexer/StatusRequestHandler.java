@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 
 public class StatusRequestHandler implements HttpRequestHandler {
@@ -19,6 +21,7 @@ public class StatusRequestHandler implements HttpRequestHandler {
 	private class Answer {
 		private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		private PrintWriter out = new PrintWriter(outStream);
+        private NumberFormat speedFormatter = new DecimalFormat("#0.00 kB/s");
 
 		public byte[] create() throws IOException {			
 			out.println("<html>");
@@ -40,6 +43,7 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("    <th>Output</th>");
 			out.println("    <th>State</th>");
 			out.println("    <th>Transferred</th>");
+            out.println("    <th>Rate</th>");
 			out.println("  </tr>");
 			
 			long now = System.currentTimeMillis();
@@ -60,6 +64,7 @@ public class StatusRequestHandler implements HttpRequestHandler {
 				out.println("    <td>"+ output.getName() +"</td>");
 				out.println("    <td>"+ stateString +"</td>");
 				out.println("    <td>"+ connection.getBytesTransferred() +"</td>");
+                out.println("    <td>"+ formatSpeed(connection.getAverageSpeed()) +"</td>");
 				out.println("  </tr>");
 			}
 			
@@ -127,6 +132,10 @@ public class StatusRequestHandler implements HttpRequestHandler {
 				}
 			}
 		}
+
+        private String formatSpeed(double speed) {
+            return speedFormatter.format(speed / 1024.0);
+        }
 	}
 
     public static class Config implements Configurator<StatusRequestHandler> {

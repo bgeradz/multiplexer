@@ -7,12 +7,11 @@ import java.net.URL;
 public class Launcher {
 	private static final Logger L = App.createLogger(Launcher.class.getSimpleName());
 
-	private String[] args;
-	private int argIndex = 0;
 	private Coordinator coordinator = new Coordinator();
 	
 	private Launcher(Config config) {
         this.coordinator = config.coordinator;
+        App.setSpeedMeasurerCapacity(config.getSpeedMeasurerCapacity());
 
 		HttpServer httpServer = new HttpServer(config.address, config.port, coordinator);
 		try {
@@ -26,6 +25,7 @@ public class Launcher {
         private Coordinator coordinator = new Coordinator();
         private String address = "0.0.0.0";
         private int port;
+        private int speedMeasurerCapacity = App.DEFAULT_SPEED_MEASURER_CAPACITY;
 
         public String getAddress() {
             return address;
@@ -45,6 +45,14 @@ public class Launcher {
 
         public void addHandler(String path, Configurator<HttpRequestHandler> handler) {
             coordinator.addRequestHandler(path, handler.build());
+        }
+
+        public int getSpeedMeasurerCapacity() {
+            return speedMeasurerCapacity;
+        }
+
+        public void setSpeedMeasurerCapacity(int speedMeasurerCapacity) {
+            this.speedMeasurerCapacity = speedMeasurerCapacity;
         }
 
         @Override
