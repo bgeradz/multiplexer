@@ -22,6 +22,10 @@ public class StatusRequestHandler implements HttpRequestHandler {
 		private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		private PrintWriter out = new PrintWriter(outStream);
         private NumberFormat speedFormatter = new DecimalFormat("#0.00 kB/s");
+        private NumberFormat transferFormatterB = new DecimalFormat("#0 B");
+        private NumberFormat transferFormatterKb = new DecimalFormat("#0.000 kB");
+        private NumberFormat transferFormatterMb = new DecimalFormat("#0.000 MB");
+        private NumberFormat transferFormatterGb = new DecimalFormat("#0.000 GB");
 
 		public byte[] create() throws IOException {			
 			out.println("<html>");
@@ -32,6 +36,13 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("      padding-left:5px;");
 			out.println("      padding-right:5px;");
 			out.println("    }");
+            out.println("    .transferred {");
+            out.println("      text-align: right;");
+            out.println("    }");
+            out.println("    .speed {");
+            out.println("      text-align: right;");
+            out.println("    }");
+
 			out.println("  </style>");
 			out.println("</head>");
 			out.println("<body>");
@@ -42,8 +53,8 @@ public class StatusRequestHandler implements HttpRequestHandler {
 			out.println("    <th>Input</th>");
 			out.println("    <th>Output</th>");
 			out.println("    <th>State</th>");
-			out.println("    <th>Transferred</th>");
-            out.println("    <th>Rate</th>");
+			out.println("    <th class=\"transferred\">Transferred</th>");
+            out.println("    <th class=\"speed\">Rate</th>");
 			out.println("  </tr>");
 			
 			long now = System.currentTimeMillis();
@@ -63,8 +74,8 @@ public class StatusRequestHandler implements HttpRequestHandler {
 				out.println("    <td>"+ input.getName() +"</td>");
 				out.println("    <td>"+ output.getName() +"</td>");
 				out.println("    <td>"+ stateString +"</td>");
-				out.println("    <td>"+ connection.getBytesTransferred() +"</td>");
-                out.println("    <td>"+ formatSpeed(connection.getAverageSpeed()) +"</td>");
+				out.println("    <td class=\"transferred\">"+ formatTransferred(connection.getBytesTransferred()) +"</td>");
+                out.println("    <td class=\"speed\">"+ formatSpeed(connection.getAverageSpeed()) +"</td>");
 				out.println("  </tr>");
 			}
 			
@@ -135,6 +146,19 @@ public class StatusRequestHandler implements HttpRequestHandler {
 
         private String formatSpeed(double speed) {
             return speedFormatter.format(speed / 1024.0);
+        }
+
+        private String formatTransferred(long trans) {
+            double transferred = (double) trans;
+            if (trans < 1024) {
+                return transferFormatterB.format(transferred);
+            } else if (trans < 1024 * 1024) {
+                return transferFormatterKb.format(transferred / 1024.0);
+            } else if (trans < 1024 * 1024 * 1024) {
+                return transferFormatterMb.format(transferred / 1024.0 / 1024.0);
+            } else {
+                return transferFormatterGb.format(transferred / 1024.0 / 1024.0 / 1024.0);
+            }
         }
 	}
 
